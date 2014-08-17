@@ -1,9 +1,501 @@
 % @Author: Athul Vijayan
 % @Date:   2014-08-16 11:47:43
 % @Last Modified by:   Athul Vijayan
-% @Last Modified time: 2014-08-16 11:47:43
+% @Last Modified time: 2014-08-17 23:46:51
 
 \documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper, margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=Matlab,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true
+  tabsize=3
+}
+
+\newcommand{\HRule}{\rule{\linewidth}{0.2mm}} % Defines a new command for the horizontal lines, change thickness here
+\title{ED4030 Tutorial 1}
+\author{Athul Vijayan}
+\date{15th August 2014}
 \begin{document}
+\begin{titlepage}
+    \center % Center everything on the page
+     
+    %----------------------------------------------------------------------------------------
+    %   HEADING SECTIONS
+    %----------------------------------------------------------------------------------------
+
+    \textsc{\LARGE Indian Institute of Technology, Madras}\\[1.5cm] % Name of your university/college
+    \textsc{\Large Finite Element Methods for Design}\\[0.5cm] % Major heading such as course name
+    \textsc{\large ED4030}\\[0.5cm] % Minor heading such as course title
+
+    %----------------------------------------------------------------------------------------
+    %   TITLE SECTION
+    %----------------------------------------------------------------------------------------
+
+    \HRule \\[0.4cm]
+    { \huge \bfseries Tutorial 1}\\[0.4cm] % Title of your document
+    \HRule \\[1.5cm]
+     
+    %----------------------------------------------------------------------------------------
+    %   AUTHOR SECTION
+    %----------------------------------------------------------------------------------------
+
+    \Large \emph{Submitted by:}\\
+    Athul Vijayan % Your name
+
+    ED11B004\\[8cm] % Your name
+    %----------------------------------------------------------------------------------------
+    %   DATE SECTION
+    %----------------------------------------------------------------------------------------
+    {\large \today}\\[6cm] % Date, change the \today to a set date if you want to be precise
+    \vfill % Fill the rest of the page with whitespace
+\end{titlepage}
+
+    \section{Problem 5}
+        We need to solve the differential equation\\
+        \centerline{$\frac{d \phi}{d x} = 3\phi + 4 \hspace{6mm} \mid \phi=0 \ \mathrm{at} \ x=0$}
+        The exact solution for this can be found to be by solving the differential equation:\\ 
+        \centerline{$\phi = \frac{4}{3}(e^{3x}-1)$}
+        But here we will use concepts of numerical methods to solve the differential equation to find values of $\phi$ at different points of x.
+        For different aproaches, the aproximation we make are:\\
+        \begin{enumerate}
+            \item Forward difference\\ \centerline{$(\frac{d \phi}{d x})_n \approx \frac{\phi_{n+1} - \phi_{n}}{\Delta x}$}
+            \item Backward difference\\ \centerline{$(\frac{d \phi}{d x})_n \approx \frac{\phi_{n} - \phi_{n-1}}{\Delta x}$}
+            \item Central difference\\ \centerline{$(\frac{d \phi}{d x})_n \approx \frac{\phi_{n+1} - \phi_{n-1}}{2 \Delta x}$}
+        \end{enumerate}
+        We use these aproximations to solve the problems in this part.
+    \subsection{Part A} % (fold)
+    \label{sub:p5_a}
+    We use 20 grid refinements to study error at $x=\frac{1}{3}$ and $x=\frac{2}{3}$.\\
+    \centerline{$\Delta x = [\frac{1}{3}, \frac{1}{6}, \frac{1}{9},......, \frac{1}{30}]$}
+    We use forward difference for this part of question. From the definition of forward difference:\\
+    \begin{align}(\frac{d \phi}{d x})_n \approx \frac{\phi_{n+1} - \phi_{n}}{\Delta x}\\ \nonumber
+     \frac{\phi_{n+1} - \phi_{n}}{\Delta x} = 3\phi + 4 \\ \nonumber
+     \phi_{n+1} -(3 \Delta x +1)\phi - 4\Delta x = 0 \\ \nonumber
+     \end{align}
+     When we write out all the equations in recurrence formula, we get a system of linear equations with n variables.\\
+     \centerline{AX = B}\\
+     Where matrices A , X and B are:\\
+     $A = 
+     \begin{pmatrix}
+      1 & 0 & 0 & \cdots & 0 & 0\\
+     -(3 \Delta x +1) & 1 & 0 & \cdots & 0 &0\\
+     \vdots  & \vdots  & \ddots & \vdots \vdots \vdots \\
+    0 & 0 & 0 & \cdots & -(3 \Delta x +1) & 1
+     \end{pmatrix}$\\
+     and\\
+     $B =
+     \begin{bmatrix}
+     4 \Delta x \\
+     4 \Delta x \\
+     \vdots \\
+     4 \Delta x \\    
+     \end{bmatrix}$
+     , \hspace{6mm}
+     $X =
+     \begin{bmatrix}
+     \phi _0 \\
+     \phi _1 \\
+     \vdots \\
+     \phi _n \\    
+     \end{bmatrix}$\\
+     We solve the above equations using the code:
+
+
+     \begin{lstlisting}
+    numGrids = 20;                       % number of different grids over which solution is sought
+    numFirstGridElems = 3; xVal = 1/3;  % number of elements in the first (coarsest) grid
+    xArray = cell(numGrids,1);          % array storing the x values at grid locations
+    phiFD = cell(numGrids,1);           % solution vectors
+    midValsFD = zeros(numGrids,1);      % an array storing all phi values at x , FD
+    stepVals = zeros(numGrids,1);       % array storing delta x values for different grids
+    phi_0 = 0;                          % phi b.c. at x = 0
+
+    
+    for i = 1:numGrids
+        numElem = numFirstGridElems*2^(i-1);      % number of elements
+        numPoints = numElem;                      % number of  grid points, N in class
+        xArray{i} = linspace(0,1,numPoints+1)';   % {} references Cell elements, () references array or matrix elements
+        xArray{i} = xArray{i}(2:numPoints+1);     % [0,1] divided into numPoints interior grid points
+        deltaX = 1/numElem;                       % step size
+        %
+        diagVec = ones(numPoints,1);              % main diagonal of length n
+        offdiagVec = -1.0*(3*deltaX + 1)*ones(numPoints-1,1);    % off-diagonal vectors of length (n-1)
+        myMat = gallery('tridiag',offdiagVec,diagVec,zeros(numPoints-1,1)); % matrix of coefficients
+        myVec = 4*deltaX*ones(numPoints,1);       % rhs vector
+        myVec(1) = myVec(1) + phi_0*(3*deltaX + 1);
+        phiFD{i} = myMat\myVec;                   % solution obtained by matrix inversion
+        index = find(xArray{i}==xVal);            % index returns the location of Xval in the array xArray{i}
+        midValsFD(i) = phiFD{i}(index);           % pick the computed value at x = xVal; 
+        stepVals(i) = deltaX;                     % store step size for plotting later
+
+        errorAtX1(i) = midValsFD(i)-4/3*(exp(3*xVal)-1);  % calculate the RMS error in every iteration of delta x=1/3
+        
+        xVal = 2/3;
+        index = find(xArray{i}==xVal);            % index returns the location of Xval in the array xArray{i}
+        midValsFD(i) = phiFD{i}(index);           % pick the computed value at x = xVal; 
+        errorAtX2(i) = midValsFD(i)-4/3*(exp(3*xVal)-1);  % error in every iteration of delta x2/3
+    end
+         
+     \end{lstlisting}
+
+     Now we use polyfit to find the slope of $log(E) Vs log(\Delta x)$.
+     \begin{lstlisting}
+         % Now we have error at x1 and x2 for different delta x. we plot log(error) Vs log(delta x) for  checking the order of error
+        %% plot FD fit and true solution
+        power = polyfit(log(abs(errorAtX1')), log(stepVals), 1)
+     \end{lstlisting}
+     and plot this using the following code\\
+     \begin{lstlisting}
+    figure;
+    plot(log(stepVals), log(abs(errorAtX1')), 'g')
+    title('Relationship betweeen $$log(Error)$$ at x=$$1/3$$ Vs $$log(\Delta x)$$', ...
+        'Interpreter','LaTeX','FontSize',18)       % plot title at the top
+    xlabel('$$log(\Delta x)$$',...                 % Label for x-axis
+            'Interpreter','LaTeX', ...
+            'FontSize',18)
+    ylabel('$$log(Error)$$',...           % Label for y-axis
+            'Interpreter','LaTeX', ...
+            'FontSize',18)
+    annotation('textbox', [.2 .7 .1 .1], 'String', ['slope using polyfit ',num2str(power(1))]);    
+     \end{lstlisting} \newpage
+     The respective plots are\\
+     x=$\frac{1}{3}$ :\\
+     \centerline{\includegraphics[width=10cm]{p5A2.jpg}}\\
+     x=$\frac{2}{3}$ :\\
+     \centerline{\includegraphics[width=10cm]{p5A1.jpg}}\\
+
+     finally slopes of $log(E) Vs log(\Delta x)$ using polyfit are:\\
+     \centerline{
+     \begin{tabular}{llr}
+    \hline
+    \multicolumn{2}{c}{Item} \\
+    \cline{1-2}
+    X    & slope \\
+    \hline
+    1/3      &  1.1632     \\
+    2/3       & 1.1093      \\
+    \hline
+    \end{tabular}
+    }
+    \newpage
+    \subsection{Part B} % (fold)
+    \label{sub:part_b}
+    We can compare the Finite Difference Solution with exact method solution by inspecting their plots.
+    Below is the plot of $\phi (x)$ with $x$:\\
+    \centerline{\includegraphics[width=15cm]{p5B1.jpg}}
+    As the value of $\Delta x$ decreases, the error also decreases. This happens because the definition of our $frac{d \phi}{d x})_n$ is\\
+    \centerline{$(\frac{d \phi}{d x})_n$ = $\lim_{x \to 0}$ $\frac{\phi_{n+1} - \phi_{n}}{\Delta x}$}\\
+    But as $\Delta x$ becomes a finite value, the aproximation goes away from the exact solution.
+    \subsection{Part C} % (fold)
+    \label{sub:part_c}
+    Only difference in backward difference will be the change of definition of $\frac{d \phi}{d x}$. In Backward difference, we use the formula: \\
+    \centerline{$(\frac{d \phi}{d x})_n \approx \frac{\phi_{n} - \phi_{n-1}}{\Delta x}$}
+    We use backward difference for this part of question. From the definition of backward difference:\\
+    \begin{align}(\frac{d \phi}{d x})_n \approx \frac{\phi_{n} - \phi_{n-1}}{\Delta x}\\ \nonumber
+     \frac{\phi_{n} - \phi_{n-1}}{\Delta x} = 3\phi_{n} + 4 \\ \nonumber
+     -\phi_{n-1} +(1 - 3 \Delta x)\phi - 4\Delta x = 0 \\ \nonumber
+     \end{align}
+     When we write out all the equations in recurrence formula, we get a system of linear equations with n variables.\\
+     \centerline{AX = B}\\
+     Where matrices A , X and B are:\\
+     $A = 
+     \begin{pmatrix}
+      (1-3\Delta x) & 0 & 0 & \cdots & 0 & 0\\
+     -1 & (1-3\Delta x) & 0 & \cdots & 0 &0\\
+     \vdots  & \vdots  & \ddots & \vdots \vdots \vdots \\
+    0 & 0 & 0 & \cdots & -1 &-(3 \Delta x +1)
+     \end{pmatrix}$\\
+     and\\
+     $B =
+     \begin{bmatrix}
+     4 \Delta x \\
+     4 \Delta x \\
+     \vdots \\
+     4 \Delta x \\    
+     \end{bmatrix}$
+     , \hspace{6mm}
+     $X =
+     \begin{bmatrix}
+     \phi _0 \\
+     \phi _1 \\
+     \vdots \\
+     \phi _n \\    
+     \end{bmatrix}$\\
+     We solve the above equations using the code:\\
+     Explanation as same as before.
+    \begin{lstlisting}
+                 
+        clear all
+        numGrids = 10;                       % number of different grids over which solution is sought
+        numFirstGridElems = 3; xVal = 1/3;  % number of elements in the first (coarsest) grid
+        xArray = cell(numGrids,1);          % array storing the x values at grid locations
+        phiFD = cell(numGrids,1);           % solution vectors
+        midValsFD = zeros(numGrids,1);      % an array storing all phi values at x , FD
+        stepVals = zeros(numGrids,1);       % array storing delta x values for different grids
+        phi_0 = 0;                          % phi b.c. at x = 0
+
+        % Now we do the above solution using backward difference formula for first derivative
+        for i = 1:numGrids
+            numElem = numFirstGridElems*2^(i-1);      % number of elements
+            numPoints = numElem;                      % number of  grid points, N in class
+            xArray{i} = linspace(0,1,numPoints+1)';   % {} references Cell elements, () references array or matrix elements
+            xArray{i} = xArray{i}(2:numPoints+1);     % [0,1] divided into numPoints interior grid points
+            deltaX = 1/numElem;                       % step size
+
+            offdiagVec = -1*ones(numPoints-1,1);              % main diagonal of length n
+            diagVec = (1 - 3*deltaX)*ones(numPoints,1);    % off-diagonal vectors of length (n-1)
+            myMat = gallery('tridiag',offdiagVec,diagVec,zeros(numPoints-1,1)); % matrix of coefficients
+            myVec = 4*deltaX*ones(numPoints,1);       % rhs vector
+            myVec(1) = myVec(1) + phi_0*(3*deltaX + 1);
+            phiFD{i} = myMat\myVec;                   % solution obtained by matrix inversion
+            index = find(xArray{i}==xVal);            % index returns the location of Xval in the array xArray{i}
+            midValsFD(i) = phiFD{i}(index);           % pick the computed value at x = xVal; 
+            stepVals(i) = deltaX;                     % store step size for plotting later
+
+            errorAtX1(i) = midValsFD(i)-4/3*(exp(3*xVal)-1);  % calculate the RMS error in every iteration of delta x=1/3
+            
+            xVal = 2/3;
+            index = find(xArray{i}==xVal);            % index returns the location of Xval in the array xArray{i}
+            midValsFD(i) = phiFD{i}(index);           % pick the computed value at x = xVal; 
+            errorAtX2(i) = midValsFD(i)-4/3*(exp(3*xVal)-1);  % error in every iteration of delta x2/3
+        end
+
+        % Now we have error at x1 and x2 for different delta x. we plot log(error) Vs log(delta x) for  checking the order of error
+        %% plot FD fit and true solution
+        power = polyfit(log(abs(errorAtX1')), log(stepVals), 1)
+        figure;
+        plot(log(stepVals), log(abs(errorAtX1')), 'g')
+        title('Relationship betweeen $$log(Error)$$ at x=$$1/3$$ Vs $$log(\Delta x)$$', ...
+            'Interpreter','LaTeX','FontSize',18)       % plot title at the top
+        xlabel('$$log(\Delta x)$$',...                 % Label for x-axis
+                'Interpreter','LaTeX', ...
+                'FontSize',18)
+        ylabel('$$log(Error)$$',...           % Label for y-axis
+                'Interpreter','LaTeX', ...
+                'FontSize',18)
+        annotation('textbox', [.2 .7 .1 .1], 'String', ['slope using polyfit ',num2str(power(1))]);
+        power = polyfit(log(abs(errorAtX2')), log(stepVals), 1);
+        figure;
+        plot(log(stepVals), log(abs(errorAtX2')), 'g')
+        title('Relationship betweeen $$log(Error)$$ at x=$$2/3$$ Vs $$log(\Delta x)$$', ...
+            'Interpreter','LaTeX','FontSize',18)       % plot title at the top
+        xlabel('$$log(\Delta x)$$',...                 % Label for x-axis
+                'Interpreter','LaTeX', ...
+                'FontSize',18)
+        ylabel('$$log(Error)$$',...           % Label for y-axis
+                'Interpreter','LaTeX', ...
+                'FontSize',18)
+        annotation('textbox', [.2 .7 .1 .1], 'String', ['slope using polyfit ',num2str(power(1))]);
+
+    \end{lstlisting}
+    And the Plots using backward difference are:\\
+    x=$\frac{1}{3}$ :\\
+     \centerline{\includegraphics[width=10cm]{p5C2.jpg}}\\
+     x=$\frac{2}{3}$ :\\
+     \centerline{\includegraphics[width=10cm]{p5C1.jpg}}\\
+
+     \newpage
+     \section{Problem 6}
+     \subsection{Part A} % (fold)
+     \label{sub:part_a}
+     Here we use aproximation for double derivative in terms of finite elements. And we can use that definition to create a system of equations.\\
+    \centerline{$(\frac{d^2 \phi}{d x^2})_n \approx \frac{\phi_{n+1} - 2\phi_{n}+\phi_{n-1}}{(\Delta x)^2}$}
+    We use forward difference for this part of question. From the definition of forward difference:\\
+    \begin{align}
+     \frac{\phi_{n+1} - 2\phi_{n} + \phi_{n-1}}{\Delta x} - \phi_{n} = 0 \\ \nonumber
+     -\phi_{n+1} -(2+ \Delta x^2)\phi_{n} + \phi_{n-1} = 0 \\ \nonumber
+     \end{align}
+    When we write out all the equations in recurrence formula, we get a system of linear equations with n variables.\\
+     \centerline{AX = B}\\
+     Where matrices A , X and B are:\\
+     $A = 
+     \begin{pmatrix}
+      (2+ \Delta x^2) & -1 & 0 & 0 & \cdots & 0 & 0\\
+     -1 & (2+ \Delta x^2) & -1 & 0& \cdots & 0 &0\\
+     \vdots  & \vdots  & \ddots & \vdots \vdots \vdots \\
+    0 & 0 & 0 & \cdots & -1 &(2+ \Delta x^2)
+     \end{pmatrix}$\\
+     and\\
+     $B =
+     \begin{bmatrix}
+     0 \\
+     0 \\
+     \vdots \\
+     1 \\    
+     \end{bmatrix}$
+     , \hspace{6mm}
+     $X =
+     \begin{bmatrix}
+     \phi _0 \\
+     \phi _1 \\
+     \vdots \\
+     \phi _n \\    
+     \end{bmatrix}$\\
+     We solve the above equations using the code:\\
+    \begin{lstlisting}
+         %% Initialize arrays and allocate space
+        clear all
+        numGrids = 10;                       % number of different grids over which solution is sought
+        numFirstGridElems = 4; xVal = 1/2;  % number of elements in the first (coarsest) grid
+        xArray = cell(numGrids,1);          % array storing the x values at grid locations
+        phiFD = cell(numGrids,1);           % Forward difference solution vectors
+        midValsFD = zeros(numGrids,1);      % an array storing all phi values at x = 0.5, FD
+        stepVals = zeros(numGrids,1);       % array storing delta x values for different grids
+        phi_0 = 0;                          % phi b.c. at x = 0
+        phi_1 = 1;
+        %
+        %% Solve using Forward Differences
+        for i = 1:numGrids
+            numElem = numFirstGridElems*2^(i-1);      % number of elements
+            numPoints = numElem-1;                      % number of  grid points, N in class
+            xArray{i} = linspace(0,1,numPoints);   % {} references Cell elements, () references array or matrix elements
+            % xArray{i} = xArray{i}(2:numPoints+1);     % [0,1] divided into numPoints interior grid points
+            deltaX = 1/numElem;                       % step size
+            %
+            diagVec = (2 + deltaX^2)*ones(numPoints,1);              % main diagonal of length n
+            myMat = gallery('tridiag',-1*ones(numPoints-1,1) ,diagVec, -1*ones(numPoints-1,1)); % matrix of coefficients
+            myVec = [phi_0 zeros(1,numPoints-2) phi_1]';
+            phiFD{i} = myMat\myVec;                   % solution obtained by matrix inversion
+            midValsFD(i) = phiFD{i}((numPoints+1)/2);           % pick the computed value at x = xVal; 
+            stepVals(i) = deltaX;                     % store step size for plotting later
+
+        end
+    \end{lstlisting}
+    Now we do a polyfit between $log(\Delta x)$ and $log(Error)$ linerly:\\
+    \begin{lstlisting}
+    x=0.5;
+    trueVal = (exp(1)/(exp(1)^2 -1 ))*(exp(x)-exp(-x));
+    errorAtX1 = midValsFD - trueVal;
+    %% plot FD fit and true solution
+
+    power = polyfit(log(stepVals), log(errorAtX1), 1)
+    \end{lstlisting} 
+    The slope is found to be $\approx$ 1. Which means the order of error is quadratic.\\
+    Now we plot this using code:\\
+    \begin{lstlisting}
+        figure;
+    plot(log(stepVals), log(abs(errorAtX1')), 'bo','MarkerSize',12, ...
+                                                'MarkerFaceColor',[0.8 0.8 0.8], ...
+                                                'MarkerEdgeColor','r',...
+                                                'LineWidth',2)
+    annotation('textbox', [.2 .7 .1 .1], 'String', ['slope using polyfit ',num2str(power(1))]);
+
+    fitVal = polyval(power,log(stepVals)); % obtain straight line fit to data
+    hold on % set hold = on to make next plot appear in the same figure
+    plot(log(stepVals),fitVal,'k:','LineWidth',2) % plot the straight line fit, 'k' for black, ':' for dotted line
+    %
+    % set various plot options
+    set(gca,'XTick',-8:2:0) % tick marks on x-axis
+    set(gca,'YTick',-24:6:-6) % tick marks on y-axis
+    set(gca,'FontSize',14) % font size for both axes
+    xlim([-8,0]); % x-range for plot
+    ylim([-24 -6]); % y-range for plot
+    xlabel('$$\log\Delta x$$',... % Label for x-axis
+     'Interpreter','LaTeX', ...
+     'FontSize',18)
+    ylabel('$$\log E$$',... % Label for y-axis
+     'Interpreter','LaTeX', ...
+     'FontSize',18)
+    grid('on') % grid lines to read off values easier
+    legend('Finite Difference','Linear Fit','Location','SouthEast') % plot legend
+    title('Error in $$\phi_{x=0.5}$$ decreases as the square of step size $$\Delta x$$', ...
+     'Interpreter','LaTeX','FontSize',18)
+    \end{lstlisting}
+
+    And the plot is:\\
+    \centerline{\includegraphics[width=16cm]{p6A1.jpg}}
+
+    \section{Problem 7}
+    We use forward difference to aproximate for double derivative.\\
+    \begin{align}
+        \frac{\phi_{n+1}-2\phi_{n}+\phi{n-1}}{\Delta x^2} = k(H - n\Delta x)^2\\
+        \phi_{n+1}-2\phi_{n}+\phi{n-1} = k(H - n\Delta x)^2\Delta x^2
+    \end{align}\\
+    where k is the constant in the equation.
+    This is solved using the code:\\
+    \begin{lstlisting}
+ 
+        clear all
+        numGrids = 10;                       % number of different grids over which solution is sought
+        numFirstGridElems = 4; xVal = 1/2;  % number of elements in the first (coarsest) grid
+        xArray = cell(numGrids,1);          % array storing the x values at grid locations
+        phiFD = cell(numGrids,1);           % Forward difference solution vectors
+        midValsFD = zeros(numGrids,1);      % an array storing all phi values at x = 0.5, FD
+        stepVals = zeros(numGrids,1);       % array storing delta x values for different grids
+        phi_0 = 0;                          % phi b.c. at x = 0
+        phi_1 = 1;
+        k = -4*9*0.1/3^4*0.08;
+        %
+        %% Solve using Forward Differences
+        for i = 1:numGrids
+            numElem = numFirstGridElems*2^(i-1);      % number of elements
+            numPoints = numElem-1;                      % number of  grid points, N in class
+            xArray{i} = linspace(0,1,numPoints);   % {} references Cell elements, () references array or matrix elements
+            % xArray{i} = xArray{i}(2:numPoints+1);     % [0,1] divided into numPoints interior grid points
+            deltaX = 1/numElem;                       % step size
+            %
+            diagVec = -2*ones(numPoints,1);              % main diagonal of length n
+            myMat = gallery('tridiag',ones(numPoints-1,1) ,diagVec, ones(numPoints-1,1)); % matrix of coefficients
+            for j=1:numPoints
+                myVec(j) = k*deltaX^2*(3-j*deltaX)^2*ones(1,numPoints);
+            end
+            myVec(1) = myVec(1) - phi_0;
+            myVec(numPoints) = myVec(numPoints) - phi_1;
+            myVec = [phi_0 zeros(1,numPoints-2) phi_1]';
+            phiFD{i} = myMat\myVec;                   % solution obtained by matrix inversion
+            midValsFD(i) = phiFD{i}((numPoints+1)/2);           % pick the computed value at x = xVal; 
+            stepVals(i) = deltaX;                     % store step size for plotting later
+
+            trueVal = (-5/108)*(0.25^4-12*0.25^3 + 54*0.25^2 -126*0.25);
+            errorAtX1(i) = 4/3*(trueVal - midValsFD(i));  % calculate the error in every iteration of delta x=1/3
+            
+            xVal = 1/2;
+            trueVal = (-5/108)*(0.5^4-12*0.5^3 + 54*0.5^2 -126*0.5);
+            index = find(xArray{i}==xVal);            % index returns the location of Xval in the array xArray{i}
+            midValsFD(i) = phiFD{i}(index);           % pick the computed value at x = xVal; 
+            errorAtX2(i) = 4/3*(trueVal - midValsFD(i));  % error in every iteration of delta x2/3
+
+            xVal = 3/4;
+            trueVal = (-5/108)*(0.75^4-12*0.75^3 + 54*0.75^2 -126*0.75);
+            index = find(xArray{i}==xVal);            % index returns the location of Xval in the array xArray{i}
+            midValsFD(i) = phiFD{i}(index);           % pick the computed value at x = xVal; 
+            errorAtX3(i) = 4/3*(trueVal - midValsFD(i));  % error in every iteration of delta x2/3
+        end
+         % To get error as a function of $$\Delta x$$ x we use polyfit.
+        plot(log(stepVals), log(errorAtX1))
+        p1 = polyfit(log(stepVals'), log(errorAtX1), 1)
+        p2 = polyfit(log(stepVals'), log(errorAtX2), 1)
+        p3 = polyfit(log(stepVals'), log(errorAtX3), 1)
+
+
+    \end{lstlisting}
+    
+        
+
+     
+
+    
+
 
 \end{document}
