@@ -1,0 +1,379 @@
+% @Author: Athul Vijayan
+% @Date:   2014-09-13 10:37:08
+% @Last Modified by:   Athul Vijayan
+% @Last Modified time: 2014-09-14 19:40:35
+
+\documentclass[11pt,paper=a4,answers]{exam}
+\usepackage{graphicx,lastpage}
+\usepackage{upgreek}
+\usepackage{censor}
+\usepackage{amsmath,amssymb}
+\usepackage{enumerate}
+
+% For good looking code
+\usepackage{listings}
+\usepackage{color}
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstset{frame=tb,
+  backgroundcolor=\color{backcolour},
+  language=Matlab,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true
+  tabsize=3
+}%============================ For good looking code
+
+\censorruledepth=-.2ex
+\censorruleheight=.1ex
+\hyphenpenalty 10000
+\usepackage[paperheight=10.5in,paperwidth=8.27in,bindingoffset=0in,left=0.8in,right=1in,
+top=0.7in,bottom=1in,headsep=.5\baselineskip]{geometry}
+\flushbottom
+\usepackage[normalem]{ulem}
+\renewcommand\ULthickness{2pt}   %%---> For changing thickness of underline
+\setlength\ULdepth{1.5ex}%\maxdimen ---> For changing depth of underline
+\renewcommand{\baselinestretch}{1}
+\pagestyle{empty}
+
+\pagestyle{headandfoot}
+\headrule
+\newcommand{\continuedmessage}{%
+\ifcontinuation{\footnotesize Question \ContinuedQuestion\ continues\ldots}{}%
+ }
+\runningheader{\footnotesize ED4030}
+{\footnotesize Finite element analysis}
+{\footnotesize Page \thepage\ of \numpages}
+\footrule
+\footer{\footnotesize}
+{}
+{\ifincomplete{\footnotesize Question \IncompleteQuestion\ continues
+on the next page\ldots}{\iflastpage{\footnotesize End of Assignment}{\footnotesize Please go        on to the next page\ldots}}}
+
+\usepackage{cleveref}
+\crefname{figure}{figure}{figures}
+\crefname{question}{question}{questions}
+%==============================================================
+\begin{document}
+\noindent
+\begin{minipage}[l]{.1\textwidth}%
+\noindent
+\end{minipage}
+\hfill
+\begin{minipage}[r]{.68\textwidth}%
+\begin{center}
+{\large \bfseries IIT Madras \par
+\Large Finite element analysis \\[2pt]
+\small Assignment 3  \par}
+\end{center}
+\end{minipage}
+\fbox{\begin{minipage}[l]{.195\textwidth}%
+\noindent
+{\footnotesize \today}
+\end{minipage}}
+\par
+\noindent
+\uline{ED11B004   \hfill \normalsize\emph \hfill       Athul Vijayan}
+\begin{questions}
+\pointformat{\boldmath\themarginpoints}
+% =================Content starts ===================
+\question
+We have the function $\phi = 1 + sin({\pi x \over 2})$ over the range $0\leq x \leq 1$.\\
+We wil aproximate $\phi$ as $\hat{\phi}$ using weighted residuals.
+$$\hat{\phi} = \psi + \sum_{m=1}^M a_m N_m$$
+In this problem, by inspection we decide to use $\psi = 1$ and trial functions as terms in expansion of $sin({\pi x \over 2})$.\\
+As we increase the number of terms, i.e as $M \longrightarrow \infty$, the accuracy of our approximation increases.\\
+\begin{align}
+\sin ({\pi x \over 2}) & = ({\pi x \over 2}) - \frac{({\pi x \over 2})^3}{3!} + \frac{({\pi x \over 2})^5}{5!} - \frac{({\pi x \over 2})^7}{7!} + \cdots \\
+& = \sum_{n=0}^\infty \frac{(-1)^n}{(2n+1)!}({\pi x \over 2})^{2n+1}
+\end{align}
+We will take first 3 terms for first aproximation and increase one term for evry next iterations upto eight terms.
+$$\hat{\phi} = 1 + \sum_{m=0}^M a_m \frac{(-1)^m}{(2m+1)!}({\pi x \over 2})^{2m+1}$$
+\begin{enumerate}[]
+    \item \textbf{Point Collocation}\\
+    In this method, we choose some points where actual and estimated value of function exactly agrees.
+    we call those points collocation points. So in this solution, we need as many collocation points as the degree of polynomial of terms we include.\\
+    collocation points $\mathbf{P} = [p_1, p_2, \cdots, p_M]$ be the M collocation points.\\
+    $$\phi(x) -\hat{\phi}(x) = 0 \qquad \forall \quad x \in \mathbf{P}$$
+    so, for every collocation point $p_i$,\\
+    \begin{align}
+        1 + sin({\pi p_i \over 2}) - \left(1 + \sum_{m=0}^M a_m \frac{(-1)^m}{(2m+1)!}({\pi p_i \over 2})^{2m+1}\right) &= 0 \qquad \forall \quad x \in \mathbf{P} \nonumber \\
+    \end{align}
+    we can write in a matrix as:
+    $$[\mathbf{K}]_{M \times M} \{\mathbf{a}\}_{M \times 1} = \{\mathbf{F}\}_{M \times 1}$$
+    \newpage
+    where
+    \begin{enumerate}[]
+        \item $\{\mathbf{a}\} = \begin{bmatrix}
+            a_1 & a_2 & \cdots & a_M
+        \end{bmatrix}^T$
+        \item $\mathbf{K}_{ij} = \frac{(-1)^j}{(2j+1)!}({\pi p_i \over 2})^{2j+1}$
+        \item $\mathbf{F}_i = sin({\pi p_i \over 2})$
+    \end{enumerate}
+    The plot of exact and estimate function for each increase in number of terms is plotted.:
+    \begin{enumerate}
+        \item Iteration 1 $\longrightarrow$ first 2 terms selected from the series\\
+        \centerline{\includegraphics[width=12cm]{q1ai1.png}}
+        \item Iteration 2 $\longrightarrow$ first 3 terms selected from the series\\
+        \centerline{\includegraphics[width=12cm]{q1ai2.png}}
+        \item Iteration 3 $\longrightarrow$ first 4 terms selected from the series\\
+        \centerline{\includegraphics[width=12cm]{q1ai3.png}}
+        \item Iteration 4 $\longrightarrow$ first 5 terms selected from the series\\
+        \centerline{\includegraphics[width=12cm]{q1ai4.png}}
+        \newpage
+        \item Iteration 5 $\longrightarrow$ first 6 terms selected from the series\\
+        \centerline{\includegraphics[width=12cm]{q1ai5.png}}
+    \end{enumerate}
+    And the code for above is:\\
+    \begin{lstlisting}
+        clear all
+        clc
+
+        numIter = 5;                            % number of iterations
+        syms x;
+        initTerms = 2;                          % Number of terms in the sine expansion included for first iteration
+        params = cell(numIter,1);               % unknowns
+        trialFns = cell(numIter, 1);            % trial functions for each iterations
+        phi = 1 + sin(pi*x/2);
+        phiHat = cell(numIter, 1);
+
+        for i=1:numIter
+            % ********************** collocation method ******************.
+            collocPts = transpose(linspace(0, 1, initTerms +i +1)); collocPts = collocPts(2:end-1);
+            collocFvec = sin(pi*collocPts/2);
+            for j=1: initTerms +i -1
+                % trialFns{i}{j} = (x^j)*(x-1);
+                trialFns{i}{j} = ((-1)^(j-1)*((pi*x)^(2*(j-1) + 1))) / (factorial(2*(j-1) +1)*(2^(2*(j-1)+1)));
+            end
+
+            for k=1:size(collocPts, 1)
+                for j=1:size(collocPts, 1)
+                    Kvec(k,j) = subs(trialFns{i}{j}, x, collocPts(k));
+                end
+            end
+            collocParams{i} = inv(Kvec)*collocFvec;
+            phiHat{i} = 1 + trialFns{i}*collocParams{i};
+
+            figure
+            phiPlot = ezplot(phi, [0, 1]);
+            set(phiPlot,'LineWidth',2); set(phiPlot,'color','g'); 
+            hold on;
+            phiHatPlot = ezplot(phiHat{i}, [0, 1]);
+            set(phiHatPlot,'LineWidth',2); set(phiHatPlot,'color','r'); set(phiHatPlot,'LineStyle','--');
+            set(get(gca,'XLabel'),'String','x');
+            set(get(gca,'YLabel'),'String','$$\phi, \quad \hat{\phi}$$', 'Interpreter','LaTex');
+            L = legend('$$\phi = 1 + sin({\pi x \over 2})$$', '$$\hat{\phi}$$', 'Location','southeast');
+            set(L,'Interpreter','LaTex');
+            title(['Plot showing actual and estimated function using point collocation for iteration ', num2str(i)]);
+            hold off;
+        end
+    \end{lstlisting}
+
+    \item \textbf{Galerkin method}\\
+    The residuals are given by $R = (\phi - \hat{\phi})$. We wish to minimize the weighted residuals given as
+    $$\int \limits_x W_i(x) R(x) \mathrm{d} x = 0$$
+    Where $W_i = N_i$\\
+    \begin{align}
+        \int \limits_x W_i(x) (\phi - \hat{\phi}) \mathrm{d} x &= 0 \qquad \forall \quad i\nonumber \\
+        \int \limits_x W_i(x) \phi(x) \mathrm{d} x &= \int \limits_x W_i(x) \hat{\phi}(x) \mathrm{d} x \nonumber \\
+        &= \int \limits_x N_i (1 + a_1 N_1 + a_2 N_2 + \cdots + a_M N_M) \nonumber\\
+        \int \limits_x W_i(x) \phi(x) \mathrm{d} x - \int \limits_x N_i \mathrm{d} x &= [\mathbf{K}]\{\mathbf{a}\} \nonumber \\
+        [\mathbf{K}]_{M \times M} \{\mathbf{a}\}_{M \times 1} &= \{\mathbf{F}\}_{M \times 1}
+    \end{align}
+    where
+    \begin{enumerate}[]
+        \item $\{\mathbf{a}\} = \begin{bmatrix}
+            a_1 & a_2 & \cdots & a_M
+        \end{bmatrix}^T$
+        \item $\mathbf{K}_{ij} = \int \limits_x N_i N_j \mathrm{d} x$
+        \item $\mathbf{F}_i = \int \limits_x N_i(\phi(x) -1) \mathrm{d}x = \int \limits_x N_i sin({\pi x \over 2}) \mathrm{d}x$
+    \end{enumerate}
+    and we can find $\mathbf{a}$ by $\mathbf{a} = \mathbf{K} ^{-1} \mathbf{F}$.\\
+    \newpage
+    code:
+    \begin{lstlisting}
+        clear all
+        clc
+
+        numIter = 5;                            % number of iterations
+        syms x;
+        initTerms = 2;                          % Number of terms in the sine expansion included for first iteration
+        params = cell(numIter,1);               % unknowns
+        trialFns = cell(numIter, 1);            % trial functions for each iterations
+        phi = 1 + sin(pi*x/2);
+        phiHat = cell(numIter, 1);
+
+        for i=1:numIter
+
+            % ==============galerkin method ========================
+            % We start with initTerms number ofterms in sine expansion and increase terms upon iteration.
+            % construct trial functions matrix.
+            trialFns{i} = cell(i + initTerms -1, 1);
+            for j=0: initTerms +i -2
+                trialFns{i}{j+1} = ((-1)^j*((pi*x)^(2*j + 1))) / (factorial(2*j +1)*(2^(2*j+1)));
+            end
+            % The trialFns has trial functions $$N_i$$ now.
+            % RHS vector F
+            FvecIntegrand = trialFns{i} * sin(pi*x/2);     %RHS integrand
+            Fvec = double(int(FvecIntegrand, x, 0, 1));    %integrate
+            clear('FvecIntegrand');
+
+            % Construct K matrix
+            for j=1:size(trialFns{i},1)
+                for k=1:size(trialFns{i},1)
+                    KvecIntegrand(j,k) = trialFns{i}{j}*trialFns{i}{k}; % Kmatrix integrand
+                end
+            end
+            Kvec = double(int(KvecIntegrand, x, 0, 1));     %integrate
+            clear('KvecIntegrand');
+            params{i} = inv(Kvec)*Fvec;                     %find unknowns
+            phiHat{i} = 1;                                  %Find aproximate phi, phiHat
+            collocPhiHat{i} = 1;
+            for j=1:size(trialFns{i},1)
+                phiHat{i} = phiHat{i} + params{i}(j)*trialFns{i}{j};
+            end
+
+            figure;
+            phiPlot = ezplot(phi, [0, 1]);
+            set(phiPlot,'LineWidth',2); set(phiPlot,'color','g');
+            hold on;
+            phiHatPlot = ezplot(phiHat{i}, [0, 1]);
+            set(phiHatPlot,'LineWidth',2); set(phiHatPlot,'color','r'); set(phiHatPlot,'LineStyle','--');
+            set(get(gca,'XLabel'),'String','x');
+            set(get(gca,'YLabel'),'String','$$\phi, \quad \hat{\phi}$$', 'Interpreter','LaTex');
+            L = legend('$$\phi = 1 + sin({\pi x \over 2})$$', '$$\hat{\phi}$$', 'Location','southeast');
+            set(L,'Interpreter','LaTex');
+            title(['Plot showing actual and estimated function using galerkin for iteration ', num2str(i)]);
+            hold off
+            clear('phiPlot', 'phiHatPlot', 'L');
+        end
+    \end{lstlisting}
+    In the code, we have used above methodology and trial functions. Since its the expansion of $sin(x)$, we should get parametrs close to one. The plot of actual and estimated function for each iteration of trial functions are given.
+    \begin{enumerate}[i.]
+        \item Iteration 1 - 2 terms in the expansion.\\
+        $\mathbf{a} = \begin{bmatrix}
+            0.9888 & 0.8704
+        \end{bmatrix}$\\
+        \includegraphics[width=12cm]{q1bi1.png}
+        \newpage
+        \item Iteration 2 - 3 terms in the expansion.\\
+        $\mathbf{a} = \begin{bmatrix}
+            0.9998  &  0.9950  &  0.9089
+        \end{bmatrix}$\\
+        \includegraphics[width=12cm]{q1bi2.png}
+        \item Iteration 3 - 4 terms in the expansion.\\
+        $\mathbf{a} = \begin{bmatrix}
+            1.0000  &  0.9999  &  0.9971  &  0.9297
+        \end{bmatrix}$\\
+        \includegraphics[width=12cm]{q1bi3.png}
+        \item Iteration 4 - 5 terms in the expansion.\\
+        $\mathbf{a} = \begin{bmatrix}
+            1.0000  &  1.0000  &  1.0000  &  0.9982  &  0.9428
+        \end{bmatrix}$\\
+        \includegraphics[width=12cm]{q1bi4.png}
+        \item Iteration 5 - 6 terms in the expansion.\\
+        $\mathbf{a} = \begin{bmatrix}
+            1.0000  &  1.0000  &  1.0000  &  1.0001  &  0.9960  &  0.9518
+        \end{bmatrix}$\\
+        \includegraphics[width=12cm]{q1bi5.png}
+    \end{enumerate}
+\end{enumerate}
+\newpage
+\question
+Since we do not know much about the characteristics of heat flow, we cannot write down a differential equation for the flow. So with the data points we have we'll fit a function for temperature using galerkin method.\\
+$$\hat{\phi} = \psi + \sum_{m=1}^M a_m N_m$$
+We write our residual function as $\phi - \hat{\phi}$. So with galerkin matheod, we have our sum of weighted residuals as:
+\begin{align}
+    \int \limits_x W_i (\phi - \hat{\phi}) \mathrm{d x} = 0 \nonumber\\
+    \int \limits_x W_i \phi \mathrm{d x} &= \int \limits_x W_i \hat{\phi} \mathrm{d x} \nonumber \\
+    \int \limits_x W_i \phi \mathrm{d x} &= \int \limits_x W_i \left(\psi + \sum_{m=1}^M a_m N_m\right) \mathrm{d x} \nonumber \\
+    \int \limits_x W_i (\phi - \psi) \mathrm{d x} &= \int \limits_x W_i \left(\sum_{m=1}^M a_m N_m\right) \mathrm{d x} \nonumber \\
+    \int \limits_x W_i (\phi - \psi) \mathrm{d x} &= \int \limits_x W_i \left(a_1 N_1 + a_2 N_2 + a_3 N_3 + \cdots + a_m N_m\right) \mathrm{d x} \nonumber \\
+\end{align}
+We can vectorize the equation as 
+    $$\{\mathbf{F}\}_{m \times 1} = [\mathbf{K}]_{m \times m} \{\mathbf{a}\}_{m \times 1} $$
+where:
+\begin{enumerate}[]
+    \item $\{\mathbf{F}\}$ is found using numerical integtation
+    \item $[\mathbf{K}]_{ij} = \int \limits_x W_i N_j \mathrm{d x}$
+    \item $\{\mathbf{a}\} = \begin{bmatrix}
+        a_1 & a_2 & a_3 & \cdots & a_m
+    \end{bmatrix}$
+\end{enumerate}
+Trial functions chosen are such that $N_i = x^i (x - 1)$
+from the condition $\phi = 20 | x=0$ and  $\phi = 30 | x=1$ gives us $\psi = 20 + 10x$.\\
+
+Code:
+\begin{lstlisting}
+    for numTrialFns =4:6;                                        % do for iterations. each iteration adda a trial term
+        syms x;   
+        distance = transpose(linspace(0, 1, 6));                % given steps in x
+        phi = [20 ; 30 ; 50 ; 65 ; 40 ; 30];                    %temperatures
+        psi = 20 + 10*x;                                        % $$\psi$$ in estimate
+
+        for i=1:numTrialFns
+            trialFns(i) = (x^i)*(x-1);                          % find symbolic trial functions
+        end
+
+        for i=1:numTrialFns
+            for j=1:numTrialFns
+                KvecIntegrand(i,j) = trialFns(i)*trialFns(j); % construct K matrix
+            end
+            FvecIntegrand = double(times(subs(trialFns(i), x, distance) , phi - (subs(psi, x, distance))));
+            Fvec(i) = trapz(distance, FvecIntegrand);           % do numerical integration 
+        end
+        Fvec = Fvec';
+        Kvec = double(int(KvecIntegrand, x, 0, 1));             % integrate to get final K matrix
+
+        params = inv(Kvec)*Fvec;                                % solved parameters
+        phiHat = psi + trialFns*params;                         %Recreate symbolic estimate eqn
+
+        % Now we plot both $$\phi$$ and $$\hat{\phi}$$.
+        figure
+        hold on
+        phiPlot = plot(distance, phi);
+        set(phiPlot,'LineStyle','o'); set(phiPlot,'color','b'); set(phiPlot,'MarkerFaceColor',[.49 1 .63]);
+        phiHatPlot = ezplot(phiHat, [0, 1]);
+        set(phiHatPlot,'LineWidth',2); set(phiHatPlot,'color','r');
+        set(get(gca,'XLabel'),'String','x');
+        set(get(gca,'YLabel'),'String','$$\phi, \quad \hat{\phi}$$', 'Interpreter','LaTex');
+        L = legend('$$\phi$$', '$$\hat{\phi}$$', 'Location','southeast');
+        set(L,'Interpreter','LaTex');
+        title(['Plot showing actual and estimated function using galerkin for iteration ', num2str(numTrialFns - 3)]);
+        clear all
+        clc
+    end
+\end{lstlisting}
+\newpage
+The plots for each iteration is:\\
+\begin{enumerate}[i.]
+    \item Iteration 1 $\longrightarrow $ 4 terms\\
+    \centerline{\includegraphics[width=10cm]{q2i1.png}}
+    \item Iteration 2 $\longrightarrow $ 5 terms\\
+    \centerline{\includegraphics[width=10cm]{q2i2.png}}
+    \newpage
+    \item Iteration 3 $\longrightarrow $ 6 terms\\
+    \centerline{\includegraphics[width=10cm]{q2i3.png}}
+\end{enumerate}
+
+
+% subsection problem_1_part_ (end)
+
+% =================Content ends ===================
+\end{questions}
+\begin{center}
+\rule{.7\textwidth}{1pt}
+\end{center}
+\end{document} 
